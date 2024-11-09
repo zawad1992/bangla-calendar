@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
         // Create custom dialog for month-year picker
         val dialog = Dialog(this)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setContentView(R.layout.dialog_month_year_picker)
+        dialog.setContentView(R.layout.dialog_english_date_picker)
 
         val monthPicker = dialog.findViewById<NumberPicker>(R.id.monthPicker)
         val yearPicker = dialog.findViewById<NumberPicker>(R.id.yearPicker)
