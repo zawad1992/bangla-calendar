@@ -126,9 +126,15 @@ class CalendarAdapter(
             holder.banglaMonth.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.white))
         } else {
             holder.itemView.setBackgroundResource(R.drawable.calendar_cell_bg)
-            holder.banglaDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.black))
-            holder.englishDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.calendar_secondary_text))
+            holder.banglaDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.calendar_text_primary))
+            holder.englishDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.calendar_text_secondary))
             holder.banglaMonth.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.calendar_primary))
+        }
+
+        // Add weekend colors if needed
+        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        if ((dayOfWeek == Calendar.FRIDAY || dayOfWeek == Calendar.SATURDAY) && !isToday) {
+            holder.banglaDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.weekend_primary))
         }
     }
 
