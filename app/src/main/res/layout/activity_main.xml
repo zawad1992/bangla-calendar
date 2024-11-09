@@ -27,17 +27,17 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/monthYearTV"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <TextView
                 android:id="@+id/banglaMonthYear"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="16sp" />
+                android:textSize="24sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/monthYearTV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"/>
         </LinearLayout>
 
         <ImageButton
@@ -49,7 +49,16 @@
             android:contentDescription="Next month"/>
     </LinearLayout>
 
+    <Button
+        android:id="@+id/currentDateButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="আজকের তারিখ"
+        android:visibility="gone"/>
+
     <LinearLayout
+        android:id="@+id/weekDaysLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -59,7 +68,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="SUN"
+            android:text="রবি"
             android:textAlignment="center"
             android:textColor="@color/calendar_secondary_text"/>
 
@@ -67,7 +76,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="MON"
+            android:text="সোম"
             android:textAlignment="center"
             android:textColor="@color/calendar_secondary_text"/>
 
@@ -75,7 +84,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="TUE"
+            android:text="মঙ্গল"
             android:textAlignment="center"
             android:textColor="@color/calendar_secondary_text"/>
 
@@ -83,7 +92,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="WED"
+            android:text="বুধ"
             android:textAlignment="center"
             android:textColor="@color/calendar_secondary_text"/>
 
@@ -91,7 +100,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="THU"
+            android:text="বৃহঃ"
             android:textAlignment="center"
             android:textColor="@color/calendar_secondary_text"/>
 
@@ -99,7 +108,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="FRI"
+            android:text="শুক্র"
             android:textAlignment="center"
             android:textColor="@color/weekend_primary"/>
 
@@ -107,7 +116,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="SAT"
+            android:text="শনি"
             android:textAlignment="center"
             android:textColor="@color/weekend_primary"/>
     </LinearLayout>
