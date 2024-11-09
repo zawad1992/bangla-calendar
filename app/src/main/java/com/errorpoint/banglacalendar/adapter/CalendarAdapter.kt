@@ -1,26 +1,33 @@
 package com.errorpoint.banglacalendar.adapter
 
+import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.errorpoint.banglacalendar.BanglaDateConverter
 import com.errorpoint.banglacalendar.R
+import com.errorpoint.banglacalendar.utils.BanglaDateConverter
 import java.util.*
 
 class CalendarAdapter(
     private val dates: List<Date>,
+    private var banglaTypeface: Typeface?,
     private val onDateClick: (Date) -> Unit
 ) : RecyclerView.Adapter<CalendarAdapter.CalendarViewHolder>() {
+     fun updateTypeface(typeface: Typeface) {
+        banglaTypeface = typeface
+        notifyDataSetChanged()
+    }
 
     private val today = Calendar.getInstance()
 
     inner class CalendarViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val dayOfMonth: TextView = itemView.findViewById(R.id.cellDayText)
         val banglaDate: TextView = itemView.findViewById(R.id.cellBanglaDate)
+        val englishDate: TextView = itemView.findViewById(R.id.cellDayText)
     }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CalendarViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -31,66 +38,66 @@ class CalendarAdapter(
     }
 
     override fun onBindViewHolder(holder: CalendarViewHolder, position: Int) {
+        banglaTypeface?.let { typeface ->
+            holder.banglaDate.typeface = typeface
+        }
         val date = dates[position]
         val calendar = Calendar.getInstance().apply { time = date }
-
-        // Get current month calendar for comparison
-        val currentMonthCalendar = Calendar.getInstance().apply {
-            set(Calendar.DAY_OF_MONTH, 1)
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-
-        // Get displayed month calendar for comparison
         val displayedMonthCalendar = Calendar.getInstance().apply {
-            time = dates[15] // Middle date is always in the displayed month
+            time = dates[15]
             set(Calendar.DAY_OF_MONTH, 1)
         }
-
-        holder.dayOfMonth.text = calendar.get(Calendar.DAY_OF_MONTH).toString()
 
         // Convert to Bangla date
         val banglaDate = BanglaDateConverter.convertToBanglaDate(date)
-        holder.banglaDate.text = banglaDate.day.toString()
+
+        // Convert numbers to Bangla numerals
+        holder.banglaDate.text = convertToNumerals(banglaDate.day)
+        holder.englishDate.text = calendar.get(Calendar.DAY_OF_MONTH).toString()
 
         // Check if date is in current month
         val isCurrentMonth = calendar.get(Calendar.MONTH) == displayedMonthCalendar.get(Calendar.MONTH)
 
-        // Style for dates from previous/next month
         if (!isCurrentMonth) {
-            holder.dayOfMonth.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.calendar_secondary_text))
-            holder.banglaDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.calendar_secondary_text))
-            holder.itemView.alpha = 0.5f
+            holder.banglaDate.alpha = 0.5f
+            holder.englishDate.alpha = 0.5f
         } else {
-            holder.itemView.alpha = 1.0f
-            holder.dayOfMonth.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.black))
-            holder.banglaDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.calendar_secondary_text))
+            holder.banglaDate.alpha = 1.0f
+            holder.englishDate.alpha = 1.0f
         }
 
-        // Check if this date is today
+        // Style for today
         if (calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) &&
             calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR)) {
             holder.itemView.setBackgroundResource(R.drawable.today_background)
-            holder.dayOfMonth.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.white))
             holder.banglaDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.white))
+            holder.englishDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.white))
         } else {
             holder.itemView.setBackgroundResource(R.drawable.calendar_cell_bg)
-        }
-
-        // Set weekends text color
-        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-        if (dayOfWeek == Calendar.FRIDAY || dayOfWeek == Calendar.SATURDAY) {
-            if (!isCurrentMonth) {
-                holder.dayOfMonth.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.weekend_secondary))
-            } else if (calendar.get(Calendar.DAY_OF_YEAR) != today.get(Calendar.DAY_OF_YEAR)) {
-                holder.dayOfMonth.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.weekend_primary))
-            }
+            holder.banglaDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.black))
+            holder.englishDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.calendar_secondary_text))
         }
 
         holder.itemView.setOnClickListener { onDateClick(date) }
     }
 
     override fun getItemCount(): Int = dates.size
+
+    private fun convertToNumerals(number: Int): String {
+        return number.toString().map {
+            when(it) {
+                '0' -> '০'
+                '1' -> '১'
+                '2' -> '২'
+                '3' -> '৩'
+                '4' -> '৪'
+                '5' -> '৫'
+                '6' -> '৬'
+                '7' -> '৭'
+                '8' -> '৮'
+                '9' -> '৯'
+                else -> it
+            }
+        }.joinToString("")
+    }
 }
