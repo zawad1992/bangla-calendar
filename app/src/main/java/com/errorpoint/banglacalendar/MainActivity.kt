@@ -4,6 +4,8 @@ import android.app.Dialog
 import android.graphics.Typeface
 import android.os.Bundle
 import android.util.LruCache
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.view.Window
 import android.widget.Button
@@ -35,10 +37,14 @@ class MainActivity : AppCompatActivity() {
     private val dateListCache = LruCache<String, List<Date>>(12) // Cache for last 12 months
     private val calendarCache = mutableMapOf<String, Calendar>()
 
+    private lateinit var gestureDetector: GestureDetector
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        initGestureDetector()
         banglaTypeface = ResourcesCompat.getFont(this, R.font.bangla_font)
 
         initViews()
@@ -46,6 +52,34 @@ class MainActivity : AppCompatActivity() {
         setListeners()
         setUpCalendar()
         setupBanglaFonts()
+    }
+
+     private fun initGestureDetector() {
+        gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            private val SWIPE_THRESHOLD = 100
+            private val SWIPE_VELOCITY_THRESHOLD = 100
+
+            override fun onFling(
+                e1: MotionEvent?,
+                e2: MotionEvent,
+                velocityX: Float,
+                velocityY: Float
+            ): Boolean {
+                val diffX = e2.x - (e1?.x ?: 0f)
+                if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                    if (diffX > 0) {
+                        // Swipe right - Previous month
+                        selectedDate.add(Calendar.MONTH, -1)
+                    } else {
+                        // Swipe left - Next month
+                        selectedDate.add(Calendar.MONTH, 1)
+                    }
+                    setUpCalendar()
+                    return true
+                }
+                return false
+            }
+        })
     }
 
     private fun initCalendarAdapter() {
@@ -70,6 +104,14 @@ class MainActivity : AppCompatActivity() {
         nextMonth = findViewById(R.id.nextButton)
         banglaMonthYear = findViewById(R.id.banglaMonthYear)
         currentDateButton = findViewById(R.id.currentDateButton)
+
+        // Add touch listener to RecyclerView
+        calendarRecyclerView.setOnTouchListener { v, event ->
+            gestureDetector.onTouchEvent(event)
+            // Don't intercept the touch event so RecyclerView still works normally
+            v.performClick()
+            false
+        }
     }
 
     private fun setupBanglaFonts() {
@@ -126,9 +168,26 @@ class MainActivity : AppCompatActivity() {
             selectedDate.get(Calendar.YEAR) != currentDate.get(Calendar.YEAR)
         ) View.VISIBLE else View.GONE
 
-        val key = "${selectedDate.get(Calendar.YEAR)}-${selectedDate.get(Calendar.MONTH)}"
-        val banglaDate = getBanglaDateFromCache(key)
-        banglaMonthYear.text = "${banglaDate.month} ${convertToNumerals(banglaDate.year)}"
+        // Get the first and last date of the month
+        val firstDate = Calendar.getInstance().apply {
+            time = selectedDate.time
+            set(Calendar.DAY_OF_MONTH, 1)
+        }
+        val lastDate = Calendar.getInstance().apply {
+            time = selectedDate.time
+            set(Calendar.DAY_OF_MONTH, selectedDate.getActualMaximum(Calendar.DAY_OF_MONTH))
+        }
+
+        // Get Bangla dates for first and last day of the month
+        val firstBanglaDate = BanglaDateConverter.convertToBanglaDate(firstDate.time)
+        val lastBanglaDate = BanglaDateConverter.convertToBanglaDate(lastDate.time)
+
+        // Set the header text
+        banglaMonthYear.text = if (firstBanglaDate.month != lastBanglaDate.month) {
+            "${firstBanglaDate.month} - ${lastBanglaDate.month} ${convertToNumerals(firstBanglaDate.year)}"
+        } else {
+            "${firstBanglaDate.month} ${convertToNumerals(firstBanglaDate.year)}"
+        }
 
         calendarAdapter.updateData(getDaysInMonth(selectedDate))
     }
