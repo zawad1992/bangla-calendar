@@ -16,7 +16,8 @@ class CalendarAdapter(
     private var banglaTypeface: Typeface?,
     private val onDateClick: (Date) -> Unit
 ) : RecyclerView.Adapter<CalendarAdapter.CalendarViewHolder>() {
-     fun updateTypeface(typeface: Typeface) {
+
+    fun updateTypeface(typeface: Typeface) {
         banglaTypeface = typeface
         notifyDataSetChanged()
     }
@@ -27,7 +28,6 @@ class CalendarAdapter(
         val banglaDate: TextView = itemView.findViewById(R.id.cellBanglaDate)
         val englishDate: TextView = itemView.findViewById(R.id.cellDayText)
     }
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CalendarViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -41,6 +41,7 @@ class CalendarAdapter(
         banglaTypeface?.let { typeface ->
             holder.banglaDate.typeface = typeface
         }
+
         val date = dates[position]
         val calendar = Calendar.getInstance().apply { time = date }
         val displayedMonthCalendar = Calendar.getInstance().apply {
@@ -51,7 +52,7 @@ class CalendarAdapter(
         // Convert to Bangla date
         val banglaDate = BanglaDateConverter.convertToBanglaDate(date)
 
-        // Convert numbers to Bangla numerals
+        // Set dates with Bangla numerals for Bangla date
         holder.banglaDate.text = convertToNumerals(banglaDate.day)
         holder.englishDate.text = calendar.get(Calendar.DAY_OF_MONTH).toString()
 
@@ -60,10 +61,10 @@ class CalendarAdapter(
 
         if (!isCurrentMonth) {
             holder.banglaDate.alpha = 0.5f
-            holder.englishDate.alpha = 0.5f
+            holder.englishDate.alpha = 0.3f  // Make English date even lighter when not in current month
         } else {
             holder.banglaDate.alpha = 1.0f
-            holder.englishDate.alpha = 1.0f
+            holder.englishDate.alpha = 0.7f  // Slightly dim English date to emphasize Bangla date
         }
 
         // Style for today
@@ -71,11 +72,13 @@ class CalendarAdapter(
             calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR)) {
             holder.itemView.setBackgroundResource(R.drawable.today_background)
             holder.banglaDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.white))
-            holder.englishDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.white))
+            holder.englishDate.setTextColor(ContextCompat.getColor(holder.itemView.context,
+                R.color.white_70))  // Slightly transparent white for English date
         } else {
             holder.itemView.setBackgroundResource(R.drawable.calendar_cell_bg)
             holder.banglaDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.black))
-            holder.englishDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.calendar_secondary_text))
+            holder.englishDate.setTextColor(ContextCompat.getColor(holder.itemView.context,
+                R.color.calendar_secondary_text))
         }
 
         holder.itemView.setOnClickListener { onDateClick(date) }
