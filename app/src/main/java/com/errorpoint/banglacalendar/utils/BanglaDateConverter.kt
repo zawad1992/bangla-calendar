@@ -1,4 +1,4 @@
-package com.errorpoint.banglacalendar
+package com.errorpoint.banglacalendar.utils
 
 import java.util.*
 
@@ -60,5 +60,22 @@ object BanglaDateConverter {
             gregorianDay + daysInMonth[banglaMonth] - 14
         }
         return Pair(banglaMonth, banglaDay)
+    }
+
+    fun getBanglaMonths(): Array<String> {
+        return banglaMonths
+    }
+
+    fun convertToGregorianDate(banglaDate: BanglaDate): Date {
+        val gregorianYear = banglaDate.year + 593
+        val gregorianMonth = banglaMonths.indexOf(banglaDate.month) + 1
+        val gregorianDay = if (banglaDate.month == "বৈশাখ") {
+            banglaDate.day + 13
+        } else {
+            banglaDate.day + 14
+        }
+        val calendar = Calendar.getInstance()
+        calendar.set(gregorianYear, gregorianMonth - 1, gregorianDay)
+        return calendar.time
     }
 }
