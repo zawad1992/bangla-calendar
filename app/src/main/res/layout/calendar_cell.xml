@@ -6,19 +6,33 @@
     android:layout_margin="1dp"
     android:background="@drawable/calendar_cell_bg">
 
+    <!-- Bangla Month - Only visible when month changes -->
+    <TextView
+        android:id="@+id/cellBanglaMonth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:visibility="gone"
+        android:textColor="@color/calendar_primary"
+        app:layout_constraintBottom_toTopOf="@id/cellBanglaDate"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"/>
+
+    <!-- Bangla Date -->
     <TextView
         android:id="@+id/cellBanglaDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:fontFamily="@font/bangla_font"
         app:layout_constraintBottom_toTopOf="@id/cellDayText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintTop_toBottomOf="@id/cellBanglaMonth"/>
 
+    <!-- English Date -->
     <TextView
         android:id="@+id/cellDayText"
         android:layout_width="wrap_content"
@@ -27,6 +41,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cellBanglaDate" />
+        app:layout_constraintTop_toBottomOf="@id/cellBanglaDate"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -16,4 +16,5 @@
     <color name="weekend_primary">#E53935</color>
     <color name="weekend_secondary">#FFCDD2</color>
     <color name="white_70">#B3FFFFFF</color>
+    <color name="calendar_primary">#673AB7</color>
 </resources>
