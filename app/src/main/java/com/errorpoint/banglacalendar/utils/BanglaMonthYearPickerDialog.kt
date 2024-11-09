@@ -33,9 +33,18 @@ class BanglaMonthYearPickerDialog(
         monthPicker.value = months.indexOf(currentDate.month)
 
         // Set up year picker
+        val currentYear = currentDate.year
+        val yearRange = 100
         yearPicker.minValue = currentDate.year - 100
         yearPicker.maxValue = currentDate.year + 100
         yearPicker.value = currentDate.year
+
+        // Convert years to Bangla numerals
+        val banglaYears = Array(yearRange * 2 + 1) { index ->
+            convertToBanglaNumeral(yearPicker.minValue + index)
+        }
+        yearPicker.displayedValues = banglaYears
+
 
         btnOk.setOnClickListener {
             onDateSelected(yearPicker.value, months[monthPicker.value])
@@ -45,5 +54,15 @@ class BanglaMonthYearPickerDialog(
         btnCancel.setOnClickListener {
             dismiss()
         }
+    }
+    private fun convertToBanglaNumeral(number: Int): String {
+        val banglaNumerals = arrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
+        return number.toString().map { digit ->
+            if (digit.isDigit()) {
+                banglaNumerals[digit.toString().toInt()]
+            } else {
+                digit
+            }
+        }.joinToString("")
     }
 }
