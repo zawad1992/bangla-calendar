@@ -4,7 +4,9 @@ import android.app.Dialog
 import android.graphics.Typeface
 import android.os.Bundle
 import android.util.LruCache
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.Window
 import android.widget.Button
 import android.widget.ImageButton
@@ -13,9 +15,9 @@ import android.widget.LinearLayout
 import android.widget.NumberPicker
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.errorpoint.banglacalendar.adapter.CalendarAdapter
+import androidx.viewpager2.widget.ViewPager2
+import com.errorpoint.banglacalendar.adapter.CalendarPagerAdapter
 import com.errorpoint.banglacalendar.utils.BanglaDate
 import com.errorpoint.banglacalendar.utils.BanglaDateConverter
 import com.errorpoint.banglacalendar.utils.BanglaMonthYearPickerDialog
@@ -23,13 +25,13 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private var banglaTypeface: Typeface? = null
-    private lateinit var calendarRecyclerView: RecyclerView
     private lateinit var monthYearText: TextView
     private lateinit var prevMonth: ImageButton
     private lateinit var nextMonth: ImageButton
     private lateinit var banglaMonthYear: TextView
     private lateinit var currentDateButton: Button
-    private lateinit var calendarAdapter: CalendarAdapter
+    private lateinit var viewPager: ViewPager2
+    private lateinit var pagerAdapter: CalendarPagerAdapter
 
     private var selectedDate = Calendar.getInstance()
     private val dateListCache = LruCache<String, List<Date>>(12) // Cache for last 12 months
@@ -42,14 +44,23 @@ class MainActivity : AppCompatActivity() {
         banglaTypeface = ResourcesCompat.getFont(this, R.font.bangla_font)
 
         initViews()
-        initCalendarAdapter()
+        initViewPager()
         setListeners()
-        setUpCalendar()
         setupBanglaFonts()
+        updateMonthYearDisplay()
     }
 
-    private fun initCalendarAdapter() {
-        calendarAdapter = CalendarAdapter(
+    private fun initViews() {
+        viewPager = findViewById(R.id.calendarViewPager)
+        monthYearText = findViewById(R.id.monthYearTV)
+        prevMonth = findViewById(R.id.previousButton)
+        nextMonth = findViewById(R.id.nextButton)
+        banglaMonthYear = findViewById(R.id.banglaMonthYear)
+        currentDateButton = findViewById(R.id.currentDateButton)
+    }
+
+    private fun initViewPager() {
+        pagerAdapter = CalendarPagerAdapter(
             banglaTypeface = banglaTypeface,
             onDateClick = { date ->
                 val banglaClickedDate = BanglaDateConverter.convertToBanglaDate(date)
@@ -57,19 +68,40 @@ class MainActivity : AppCompatActivity() {
             }
         )
 
-        calendarRecyclerView.apply {
-            layoutManager = GridLayoutManager(context, 7)
-            adapter = calendarAdapter
-        }
-    }
+        viewPager.apply {
+            adapter = pagerAdapter
+            setCurrentItem(pagerAdapter.getMiddlePage(), false)
 
-    private fun initViews() {
-        calendarRecyclerView = findViewById(R.id.calendarRecyclerView)
-        monthYearText = findViewById(R.id.monthYearTV)
-        prevMonth = findViewById(R.id.previousButton)
-        nextMonth = findViewById(R.id.nextButton)
-        banglaMonthYear = findViewById(R.id.banglaMonthYear)
-        currentDateButton = findViewById(R.id.currentDateButton)
+            // Reduce swipe sensitivity
+            (getChildAt(0) as? RecyclerView)?.let { recyclerView ->
+                recyclerView.overScrollMode = View.OVER_SCROLL_NEVER
+                val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+                recyclerView.setOnTouchListener { _, event ->
+                    when (event.action) {
+                        MotionEvent.ACTION_DOWN -> {
+                            recyclerView.parent.requestDisallowInterceptTouchEvent(true)
+                        }
+                        MotionEvent.ACTION_MOVE -> {
+                            if (event.pointerCount > 1) {
+                                recyclerView.parent.requestDisallowInterceptTouchEvent(false)
+                            }
+                        }
+                    }
+                    false
+                }
+            }
+
+            registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    val monthOffset = position - pagerAdapter.getMiddlePage()
+                    selectedDate.apply {
+                        time = Calendar.getInstance().time
+                        add(Calendar.MONTH, monthOffset)
+                    }
+                    updateMonthYearDisplay()
+                }
+            })
+        }
     }
 
     private fun setupBanglaFonts() {
@@ -84,27 +116,22 @@ class MainActivity : AppCompatActivity() {
                     child.typeface = typeface
                 }
             }
-
-            if (::calendarAdapter.isInitialized) {
-                calendarAdapter.updateTypeface(typeface)
-            }
         }
     }
 
     private fun setListeners() {
         prevMonth.setOnClickListener {
-            selectedDate.add(Calendar.MONTH, -1)
-            setUpCalendar()
+            viewPager.currentItem = viewPager.currentItem - 1
         }
 
         nextMonth.setOnClickListener {
-            selectedDate.add(Calendar.MONTH, 1)
-            setUpCalendar()
+            viewPager.currentItem = viewPager.currentItem + 1
         }
 
         currentDateButton.setOnClickListener {
+            viewPager.setCurrentItem(pagerAdapter.getMiddlePage(), true)
             selectedDate = Calendar.getInstance()
-            setUpCalendar()
+            updateMonthYearDisplay()
         }
 
         monthYearText.setOnClickListener {
@@ -116,7 +143,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setUpCalendar() {
+    private fun updateMonthYearDisplay() {
         val monthYearFormatter = android.text.format.DateFormat.format("MMMM yyyy", selectedDate)
         monthYearText.text = monthYearFormatter.toString()
 
@@ -126,7 +153,7 @@ class MainActivity : AppCompatActivity() {
             selectedDate.get(Calendar.YEAR) != currentDate.get(Calendar.YEAR)
         ) View.VISIBLE else View.GONE
 
-        // Get the first and last date of the month
+        // Update Bangla date display
         val firstDate = Calendar.getInstance().apply {
             time = selectedDate.time
             set(Calendar.DAY_OF_MONTH, 1)
@@ -136,62 +163,13 @@ class MainActivity : AppCompatActivity() {
             set(Calendar.DAY_OF_MONTH, selectedDate.getActualMaximum(Calendar.DAY_OF_MONTH))
         }
 
-        // Get Bangla dates for first and last day of the month
         val firstBanglaDate = BanglaDateConverter.convertToBanglaDate(firstDate.time)
         val lastBanglaDate = BanglaDateConverter.convertToBanglaDate(lastDate.time)
 
-        // Set the header text
         banglaMonthYear.text = if (firstBanglaDate.month != lastBanglaDate.month) {
             "${firstBanglaDate.month} - ${lastBanglaDate.month} ${convertToNumerals(firstBanglaDate.year)}"
         } else {
             "${firstBanglaDate.month} ${convertToNumerals(firstBanglaDate.year)}"
-        }
-
-        calendarAdapter.updateData(getDaysInMonth(selectedDate))
-    }
-
-    private fun getDaysInMonth(calendar: Calendar): List<Date> {
-        val key = "${calendar.get(Calendar.YEAR)}-${calendar.get(Calendar.MONTH)}"
-
-        return dateListCache.get(key) ?: run {
-            val dates = generateDaysInMonth(calendar)
-            dateListCache.put(key, dates)
-            dates
-        }
-    }
-
-    private fun generateDaysInMonth(calendar: Calendar): List<Date> {
-        val dates = ArrayList<Date>(42) // Pre-size ArrayList
-        val monthCalendar = getCalendarFromCache(calendar)
-
-        val firstDayOfMonth = monthCalendar.get(Calendar.DAY_OF_WEEK) - 1
-        monthCalendar.add(Calendar.DAY_OF_MONTH, -firstDayOfMonth)
-
-        repeat(42) {
-            dates.add(monthCalendar.time)
-            monthCalendar.add(Calendar.DAY_OF_MONTH, 1)
-        }
-
-        return dates
-    }
-
-    private fun getCalendarFromCache(calendar: Calendar): Calendar {
-        val key = "${calendar.get(Calendar.YEAR)}-${calendar.get(Calendar.MONTH)}"
-
-        return calendarCache.getOrPut(key) {
-            (calendar.clone() as Calendar).apply {
-                set(Calendar.DAY_OF_MONTH, 1)
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }
-        }
-    }
-
-    private fun getBanglaDateFromCache(key: String): BanglaDate {
-        return banglaDateCache.getOrPut(key) {
-            BanglaDateConverter.convertToBanglaDate(Date(selectedDate.timeInMillis))
         }
     }
 
@@ -220,9 +198,26 @@ class MainActivity : AppCompatActivity() {
         yearPicker.value = selectedDate.get(Calendar.YEAR)
 
         btnOk.setOnClickListener {
+            // Calculate the month difference to determine ViewPager position
+            val newDate = Calendar.getInstance().apply {
+                set(Calendar.YEAR, yearPicker.value)
+                set(Calendar.MONTH, monthPicker.value)
+                set(Calendar.DAY_OF_MONTH, 1)
+            }
+
+            val currentPageDate = Calendar.getInstance().apply {
+                add(Calendar.MONTH, viewPager.currentItem - pagerAdapter.getMiddlePage())
+                set(Calendar.DAY_OF_MONTH, 1)
+            }
+
+            val monthDifference = ((newDate.get(Calendar.YEAR) - currentPageDate.get(Calendar.YEAR)) * 12 +
+                    (newDate.get(Calendar.MONTH) - currentPageDate.get(Calendar.MONTH)))
+
             selectedDate.set(Calendar.YEAR, yearPicker.value)
             selectedDate.set(Calendar.MONTH, monthPicker.value)
-            setUpCalendar()
+
+            viewPager.setCurrentItem(viewPager.currentItem + monthDifference, true)
+            updateMonthYearDisplay()
             dialog.dismiss()
         }
 
@@ -239,11 +234,25 @@ class MainActivity : AppCompatActivity() {
             this,
             currentBanglaDate
         ) { year, month ->
-            val englishDate = BanglaDateConverter.convertToGregorianDate(
+            val newDate = BanglaDateConverter.convertToGregorianDate(
                 BanglaDate(1, month, year)
             )
-            selectedDate.time = englishDate
-            setUpCalendar()
+
+            val newCal = Calendar.getInstance().apply {
+                time = newDate
+            }
+
+            val currentPageDate = Calendar.getInstance().apply {
+                add(Calendar.MONTH, viewPager.currentItem - pagerAdapter.getMiddlePage())
+                set(Calendar.DAY_OF_MONTH, 1)
+            }
+
+            val monthDifference = ((newCal.get(Calendar.YEAR) - currentPageDate.get(Calendar.YEAR)) * 12 +
+                    (newCal.get(Calendar.MONTH) - currentPageDate.get(Calendar.MONTH)))
+
+            selectedDate.time = newDate
+            viewPager.setCurrentItem(viewPager.currentItem + monthDifference, true)
+            updateMonthYearDisplay()
         }
         dialog.show()
     }
