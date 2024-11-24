@@ -21,6 +21,7 @@ import com.errorpoint.banglacalendar.adapter.CalendarPagerAdapter
 import com.errorpoint.banglacalendar.utils.BanglaDate
 import com.errorpoint.banglacalendar.utils.BanglaDateConverter
 import com.errorpoint.banglacalendar.utils.BanglaMonthYearPickerDialog
+import com.errorpoint.banglacalendar.widget.WidgetPreviewProvider
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
@@ -40,6 +41,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Generate widget preview if needed
+        WidgetPreviewProvider(this).getOrCreatePreview()
 
         banglaTypeface = ResourcesCompat.getFont(this, R.font.bangla_font)
 
