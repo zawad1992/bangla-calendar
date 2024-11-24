@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:gravity="center">
+
+    <!-- English Day -->
+    <TextView
+        android:id="@+id/widget_english_day"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"/>
+
+    <!-- English Date -->
+    <TextView
+        android:id="@+id/widget_english_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="2dp"/>
+
+    <!-- Replace View divider with TextView for separation -->
+    <TextView
+        android:id="@+id/widget_divider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="•"
+        android:gravity="center"
+        android:textColor="#FFFFFF"
+        android:alpha="0.5"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp"/>
+
+    <!-- Bangla Date -->
+    <TextView
+        android:id="@+id/widget_bangla_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:fontFamily="@font/bangla_font"/>
+</LinearLayout>
